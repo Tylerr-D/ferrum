@@ -1,0 +1,115 @@
+use chess::{Board, ChessMove, MoveGen,Piece, Color, ALL_SQUARES};
+
+fn find_the_best_move_out_there_uhh_it_is_probably_not_the_best_but_shrug(board:&Board) -> Option<ChessMove>{
+
+let legal_moves:Vec<ChessMove> = MoveGen::new_legal(board).collect();
+
+if legal_moves.is_empty(){
+    return None;
+}
+
+let mut best_move = legal_moves[0];
+
+
+let mut best_score = if board.side_to_move() == Color::White {
+        i32::MIN
+    } 
+    else {
+        i32::MAX
+    };
+
+    for m in legal_moves {
+        let new_board = board.make_move_new(m);
+
+        let score = evaluate(&new_board);
+    
+if board.side_to_move() == Color::White {
+    if score > best_score {
+
+    best_score = score;
+    best_move = m;
+    }
+} else {
+
+    if score < best_score {
+
+        best_score = score;
+        best_move = m;
+    }
+}
+
+}
+
+    Some(best_move)
+}
+
+
+
+fn evaluate(board: &Board) -> i32 {
+
+    let mut score = 0;
+    
+    for square in ALL_SQUARES {
+
+        if let Some(piece) = board.piece_on(square){
+
+            let value = piece_value(piece);
+            let color = board.color_on(square).unwrap();
+
+            // sonion this is my code 
+
+            if color == Color::White {
+                score += value;
+            }
+            else {
+                score -= value;
+            }
+            
+        }
+    }
+    score
+}
+
+
+fn piece_value(piece: Piece) -> i32 {
+    match piece {
+        Piece::Pawn => 100,
+        Piece::Knight => 300,
+        Piece::Bishop => 300,
+        Piece::Rook => 500,
+        Piece::Queen => 900,
+        Piece::King => 0,
+    }
+}
+
+
+fn main(){
+
+let mut board = Board::default();
+let mut move_count = 0;
+
+
+loop {
+
+
+        let best = find_the_best_move_out_there_uhh_it_is_probably_not_the_best_but_shrug(&board);
+
+        match best {
+            None => {
+                println!("game over after {} move",move_count);
+                break;
+            }
+            Some(chosen) => {
+                println!("Move {}: {}", move_count + 1, chosen);
+                 board = board.make_move_new(chosen);
+                move_count += 1;
+            }
+        }
+
+                if move_count > 200 {
+            println!("Stop after 200 moves");
+            break;
+        }
+}
+
+}
