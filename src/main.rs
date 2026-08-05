@@ -1,6 +1,55 @@
 use chess::{Board, ChessMove, MoveGen,Piece, Color, ALL_SQUARES};
 
-fn find_the_best_move_out_there_uhh_it_is_probably_not_the_best_but_shrug(board:&Board) -> Option<ChessMove>{
+
+fn minimax(board: &Board, depth:u32) -> i32 {
+
+    if depth == 0 {
+        return evaluate(board);
+    }
+
+    let legal_moves:Vec<ChessMove> = MoveGen::new_legal(board).collect();
+
+    if legal_moves.is_empty() {
+        if board.checkers().0 != 0 {
+            return if board.side_to_move() == Color::White {
+                -1_000_000
+            } else {
+                1_000_000
+            };
+        }
+        else {
+            return 0;
+        }
+    }
+
+    if board.side_to_move() == Color::White {
+        let mut best = i32::MIN;
+        for m in legal_moves {
+    
+                let new_board = board.make_move_new(m);
+
+                let score = minimax(&new_board, depth -1);
+                best = best.max(score);
+        }
+        best
+    }
+
+    else {
+                let mut best = i32::MAX;
+
+                for m in legal_moves {
+
+                let new_board = board.make_move_new(m);
+
+                let score = minimax(&new_board, depth -1);
+                best = best.min(score);  
+    }
+    best
+
+    }
+}
+
+fn find_the_best_move_out_there_uhh_it_is_probably_not_the_best_but_shrug(board:&Board, depth:u32) -> Option<ChessMove>{
 
 let legal_moves:Vec<ChessMove> = MoveGen::new_legal(board).collect();
 
@@ -21,7 +70,7 @@ let mut best_score = if board.side_to_move() == Color::White {
     for m in legal_moves {
         let new_board = board.make_move_new(m);
 
-        let score = evaluate(&new_board);
+        let score = minimax(&new_board, depth - 1);
     
 if board.side_to_move() == Color::White {
     if score > best_score {
@@ -92,7 +141,7 @@ let mut move_count = 0;
 loop {
 
 
-        let best = find_the_best_move_out_there_uhh_it_is_probably_not_the_best_but_shrug(&board);
+        let best = find_the_best_move_out_there_uhh_it_is_probably_not_the_best_but_shrug(&board,5);
 
         match best {
             None => {
