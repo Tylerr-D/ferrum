@@ -1,7 +1,10 @@
-use chess::{Board, ChessMove, MoveGen,Piece, Color, ALL_SQUARES};
+use chess::{Board, ChessMove, MoveGen,Piece, Color, ALL_SQUARES, Square};
 
 
-fn minimax(board: &Board, depth:u32) -> i32 {
+
+
+
+fn alphabeta(board:&Board, depth:u32, mut alpha: i32, mut beta: i32) -> i32 {
 
     if depth == 0 {
         return evaluate(board);
@@ -28,8 +31,13 @@ fn minimax(board: &Board, depth:u32) -> i32 {
     
                 let new_board = board.make_move_new(m);
 
-                let score = minimax(&new_board, depth -1);
+                let score = alphabeta(&new_board, depth -1, alpha, beta);
                 best = best.max(score);
+                alpha = alpha.max(best);
+
+                if beta <= alpha {
+                    break;
+                }
         }
         best
     }
@@ -41,8 +49,13 @@ fn minimax(board: &Board, depth:u32) -> i32 {
 
                 let new_board = board.make_move_new(m);
 
-                let score = minimax(&new_board, depth -1);
+                let score = alphabeta(&new_board, depth -1, alpha, beta);
                 best = best.min(score);  
+                beta = beta.min(best);
+
+                if beta <= alpha {
+    break;
+}
     }
     best
 
@@ -67,10 +80,13 @@ let mut best_score = if board.side_to_move() == Color::White {
         i32::MAX
     };
 
+    let alpha = i32::MIN;
+    let beta = i32::MAX;
+
     for m in legal_moves {
         let new_board = board.make_move_new(m);
 
-        let score = minimax(&new_board, depth - 1);
+        let score = alphabeta(&new_board, depth - 1, alpha, beta);
     
 if board.side_to_move() == Color::White {
     if score > best_score {
