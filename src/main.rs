@@ -155,7 +155,7 @@ fn print_board(board:&Board){
 println!();
 
 for rank in (0..8).rev(){
-    print!("{} ",rank +1);
+    print!(" {} ",rank +1);
 
     for file in 0..8 {
 
@@ -170,10 +170,17 @@ for rank in (0..8).rev(){
                 piece_char(piece,c)
             }
 
-            None => '.',
+            None => '.'
         };
 
-                    print!("{} ", symbol);
+        let is_light_square = (rank + file) %2 != 0;
+        //its just black and white btw
+        let bg_code = if is_light_square { "48;5;180" } else { "48;5;94" };
+
+        //those random ahh numbers are black n white
+
+        // for it to change color 
+                    print!("\x1b[{};1;97m {}  \x1b[0m", bg_code, symbol);
 
     }
 
@@ -181,7 +188,7 @@ for rank in (0..8).rev(){
     //clean stuff yk?
 }
 
-println!("  a b c d e f g h");
+println!("   a   b   c   d   e   f   g   h");
 //took time to figure out the spacing mb
 println!();
 
@@ -204,7 +211,7 @@ fn piece_char(piece: Piece, color: Color) -> char {
         (Piece::Bishop, Color::Black) => '♝',
         (Piece::Knight, Color::Black) => '♞',
         (Piece::Pawn, Color::Black) => '♟',
-    };
+    }
 
 
 }
