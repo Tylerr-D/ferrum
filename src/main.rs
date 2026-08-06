@@ -1,7 +1,48 @@
 use chess::{Board, ChessMove, MoveGen,Piece, Color, ALL_SQUARES, Square};
+use std::io;
+use std::io::Write;
+use std::str::FromStr;
 
 
 
+
+
+fn evaluate(board: &Board) -> i32 {
+
+    let mut score = 0;
+    
+    for square in ALL_SQUARES {
+
+        if let Some(piece) = board.piece_on(square){
+
+            let value = piece_value(piece);
+            let color = board.color_on(square).unwrap();
+
+            // sonion this is my code 
+
+            if color == Color::White {
+                score += value;
+            }
+            else {
+                score -= value;
+            }
+            
+        }
+    }
+    score
+}
+
+
+fn piece_value(piece: Piece) -> i32 {
+    match piece {
+        Piece::Pawn => 100,
+        Piece::Knight => 300,
+        Piece::Bishop => 300,
+        Piece::Rook => 500,
+        Piece::Queen => 900,
+        Piece::King => 0,
+    }
+}
 
 
 fn alphabeta(board:&Board, depth:u32, mut alpha: i32, mut beta: i32) -> i32 {
@@ -109,72 +150,161 @@ if board.side_to_move() == Color::White {
 }
 
 
+fn print_board(board:&Board){
+    // cleany clean woohoooo
+println!();
 
-fn evaluate(board: &Board) -> i32 {
+for rank in (0..8).rev(){
+    print!("{} ",rank +1);
 
-    let mut score = 0;
-    
-    for square in ALL_SQUARES {
+    for file in 0..8 {
 
-        if let Some(piece) = board.piece_on(square){
+        let square = Square::make_square(
+            chess::Rank::from_index(rank),
+            chess::File::from_index(file),
+        );
 
-            let value = piece_value(piece);
-            let color = board.color_on(square).unwrap();
-
-            // sonion this is my code 
-
-            if color == Color::White {
-                score += value;
+        let symbol = match board.piece_on(square){
+            Some(piece) => {
+                let c = board.color_on(square).unwrap();
+                piece_char(piece,c)
             }
-            else {
-                score -= value;
-            }
-            
-        }
+
+            None => '.',
+        };
+
+                    print!("{} ", symbol);
+
     }
-    score
+
+    println!();
+    //clean stuff yk?
+}
+
+println!("  a b c d e f g h");
+//took time to figure out the spacing mb
+println!();
+
+}
+
+fn piece_char(piece: Piece, color: Color) -> char {
+ match (piece,color) {
+
+    // took all these symbols from the net these help understanding whats going on the board got these 
+    // from https://en.wikipedia.org/wiki/Chess_symbols_in_Unicode
+ (Piece::King, Color::White) => '♔',
+        (Piece::Queen, Color::White) => '♕',
+        (Piece::Rook, Color::White) => '♖',
+        (Piece::Bishop, Color::White) => '♗',
+        (Piece::Knight, Color::White) => '♘',
+        (Piece::Pawn, Color::White) => '♙',
+        (Piece::King, Color::Black) => '♚',
+        (Piece::Queen, Color::Black) => '♛',
+        (Piece::Rook, Color::Black) => '♜',
+        (Piece::Bishop, Color::Black) => '♝',
+        (Piece::Knight, Color::Black) => '♞',
+        (Piece::Pawn, Color::Black) => '♟',
+    };
+
+
 }
 
 
-fn piece_value(piece: Piece) -> i32 {
-    match piece {
-        Piece::Pawn => 100,
-        Piece::Knight => 300,
-        Piece::Bishop => 300,
-        Piece::Rook => 500,
-        Piece::Queen => 900,
-        Piece::King => 0,
-    }
+
+fn read_line() -> String {
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).expect("failed");
+        input.trim().to_string()
+
 }
+
 
 
 fn main(){
 
-let mut board = Board::default();
-let mut move_count = 0;
+    println!("welcome to ferrum! play as b(lack) or w(hite)");
+    print!("> ");
+    io::stdout().flush().unwrap();
 
+    let choice = read_line().to_lowercase();
+
+    let human_color = if choice.starts_with('b') {
+                Color::Black
+    }
+
+    else {
+                Color::White
+
+    };
+
+    let search_depth = 4;
+
+let mut board = Board::default();
 
 loop {
 
+            print_board(&board);
 
-        let best = find_the_best_move_out_there_uhh_it_is_probably_not_the_best_but_shrug(&board,5);
 
-        match best {
-            None => {
-                println!("game over after {} move",move_count);
+                let legal_moves:Vec<ChessMove> = MoveGen::new_legal(&board).collect();
+
+    if legal_moves.is_empty() {
+        if board.checkers().0 != 0 {
+
+            let winner = if board.side_to_move() == Color::White {
+                "Black"
+            }
+
+            else {
+                "White"
+            };
+
+                            println!("Checkmate! {} wins.", winner);
+
+        }
+
+                            else {
+                                println!("stalemate - its a draw");
+                            }
+                            break;
+        }
+
+
+
+
+if board.side_to_move() == human_color {
+
+    loop {
+        print!("your move (e.g. e2e4): ");
+
+        io::stdout().flush().unwrap();
+         let input = read_line();
+
+         match ChessMove::from_str(&input) {
+            Ok(m) if legal_moves.contains(&m) =>  {
+               board = board.make_move_new(m);
                 break;
             }
-            Some(chosen) => {
-                println!("Move {}: {}", move_count + 1, chosen);
-                 board = board.make_move_new(chosen);
-                move_count += 1;
-            }
-        }
 
-                if move_count > 200 {
-            println!("Stop after 200 moves");
-            break;
-        }
+
+            //rust ahh syntax
+            _ => {
+                println!("not a legal move");
+            }
+         }
+
+    }
 }
 
+else {
+
+    println!("engine is thinking");
+
+    if let Some(m) = find_the_best_move_out_there_uhh_it_is_probably_not_the_best_but_shrug(&board, search_depth) {
+        println!("engine plays {}",m);
+        board = board.make_move_new(m);
+
+    }
+}
+}
 }
