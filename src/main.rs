@@ -152,7 +152,8 @@ if board.side_to_move() == Color::White {
 
 fn print_board(board:&Board){
     // cleany clean woohoooo
-println!();
+    print!("\x1b[2J\x1b[3J\x1b[H");
+io::stdout().flush().unwrap();
 
 for rank in (0..8).rev(){
     print!(" {} ",rank +1);
@@ -173,14 +174,8 @@ for rank in (0..8).rev(){
             None => '.'
         };
 
-        let is_light_square = (rank + file) %2 != 0;
-        //its just black and white btw
-        let bg_code = if is_light_square { "48;5;180" } else { "48;5;94" };
+            print!(" {}  ", symbol);
 
-        //those random ahh numbers are black n white
-
-        // for it to change color 
-                    print!("\x1b[{};1;97m {}  \x1b[0m", bg_code, symbol);
 
     }
 
@@ -188,7 +183,7 @@ for rank in (0..8).rev(){
     //clean stuff yk?
 }
 
-println!("   a   b   c   d   e   f   g   h");
+println!("    a   b   c   d   e   f   g   h");
 //took time to figure out the spacing mb
 println!();
 
@@ -205,7 +200,7 @@ fn piece_char(piece: Piece, color: Color) -> char {
         (Piece::Bishop, Color::White) => '♗',
         (Piece::Knight, Color::White) => '♘',
         (Piece::Pawn, Color::White) => '♙',
-        (Piece::King, Color::Black) => '♚',
+        (Piece::King, Color::Black) => '♚',  
         (Piece::Queen, Color::Black) => '♛',
         (Piece::Rook, Color::Black) => '♜',
         (Piece::Bishop, Color::Black) => '♝',
@@ -244,7 +239,34 @@ fn main(){
 
     };
 
-    let search_depth = 4;
+let search_depth: u32 = loop {
+
+println!("1 - easy af (depth 2)");
+println!("2 - easy (depth 3)");
+println!("3 - a little less easy (depth 4)");
+println!("4 - medium (depth 5)");
+print!("> ");
+
+io::stdout().flush().unwrap();
+
+let difficulty = read_line();
+
+    match difficulty.as_str() {
+
+
+    "1" => break 2,
+    "2" => break 3,
+    "3" => break 4,
+    "4" => break 5,
+    _ => {
+        println!("invalid choice\n");
+    }
+    }  
+    };
+
+
+
+
 
 let mut board = Board::default();
 
