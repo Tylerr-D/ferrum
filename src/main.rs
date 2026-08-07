@@ -5,6 +5,7 @@ use std::str::FromStr;
 
 
 
+ 
 
 
 fn evaluate(board: &Board) -> i32 {
@@ -17,14 +18,15 @@ fn evaluate(board: &Board) -> i32 {
 
             let value = piece_value(piece);
             let color = board.color_on(square).unwrap();
+            let bonus = piece_square_bonus(piece, color, square);
 
             // sonion this is my code 
 
             if color == Color::White {
-                score += value;
+                score += value + bonus;
             }
             else {
-                score -= value;
+                score -= value + bonus;
             }
             
         }
@@ -148,6 +150,107 @@ if board.side_to_move() == Color::White {
 
     Some(best_move)
 }
+
+
+// gng these blocks took A LOT OF TIME to write. but they do improve the code
+// it requies deep chess knowledge /j
+
+const PAWN_TABLE: [i32; 64] = [
+0, 0, 0, 0, 0, 0, 0, 0,
+67, 67, 67, 76, 76, 67, 67, 67,
+20, 20, 30, 50, 50, 20, 30, 30,
+10, 10, 15, 20, 20, 15, 15, 10,
+0, 0, 0, 0, 0, 0, 0, 0,
+-5, -5, 5, 10, 10, 5, -5, -5,
+5, 5, -10, -20, -20, -10, 5, 5,
+ 0, 0, 0, 0, 0, 0, 0, 0
+];
+
+//gng im trying so hard to mantain symmetry :cryin:
+
+const KNIGHT_TABLE: [i32; 64] = [
+-67, -67, -33, -20, -20, -33, -67, -67,
+-67, -33, -20, -10, -10, -20, -33, -67,
+-10, 0, 10, 20, 20, 10, 0, 10,
+0, 10, 20, 30, 30, 20, 10, 0,
+0, 10, 20, 30, 30, 20, 10, 0,
+-10, 0, 10, 20, 20, 10, 0, 10,
+-67, -33, -20, -10, -10, -20, -33, -67,
+-67, -67, -33, -20, -20, -33, -67, -67,
+];
+
+const BISHOP_TABLE: [i32; 64] = [
+-10, -5, 0, -5, -5, 0,-5, -10,
+-10, -5, 0, 10, 10, 0, -5, -10,
+//why 12 there? because i wanted it to be there
+-13, -7, 5, 15, 15, 5, -7, -12,
+0, 5, 10, 20, 20, 10, 5, 0,
+0, 5, 10, 20, 20, 10, 5, 0,
+-13, -7, 5, 15, 15, 5, -7, -12,
+-10, -5, 0, 10, 10, 0, -5, -10,
+-10, -5, 0, -5, -5, 0,-5, -10
+];
+
+// rook on the 7th row yumm
+
+const ROOK_TABLE:[i32; 64] = [
+ 0, 0, 0, 10, 10, 0, 0, 0,
+ 30, 30, 30, 50, 50, 30, 30, 30,
+ 10, 10, 20, 20, 20, 20, 10, 10,
+ -5, -5, 0, 5, 5, 0, -5, -5,
+ -5, -5, 0, 5, 5, 0, -5, -5,
+ 0, 0, 5, 10, 10, 5, 0, 0,
+ -5, 0, 0, 0, 0, 0, 0, -5,
+-5, 0, 10, 15, 15, 10, 0, -5
+];
+
+const QUEEN_TABLE:[i32; 64] = [
+ -20, -10, 0, 10, 10, 0, -20, -10,
+ 0, 10, 20, 20, 20, 20, 10, 0,
+ -5, 0, 5, 10, 10, 5, 0, -5,
+ 0, 5, 5, 10, 10, 5, 5, 0,
+ 0, 5, 10, 15, 15, 10, 5, 0,
+-5, 0, 5, 10, 10, 5, 0, -5,
+-10, -5, 0, 5, 5, 0, -5, -10,
+-20, -10, -5, 0, 0, -5, -10, -20,
+
+];
+
+
+
+const KING_TABLE:[i32; 64] = [
+-30,-40,-40,-50,-50,-40,-40,-30,
+-30,-40,-40,-50,-50,-40,-40,-30,
+-30,-40,-40,-50,-50,-40,-40,-30,
+-30,-40,-40,-50,-50,-40,-40,-30,
+-20,-30,-30,-40,-40,-30,-30,-20,
+-10 ,-20, -20, -20, -20, -20, -20, -10,
+-10, -10, -5, -5, -5, -5, -10, -10,
+20, 30, 10,  0,  0, 10, 30, 20,
+];
+
+
+fn piece_square_bonus(piece:Piece, color:Color, square:Square) -> i32 {
+
+    let index = if color == Color::White {
+        (7 - square.get_rank().to_index()) * 8 + square.get_file().to_index()
+    }
+
+    else {
+        square.get_rank().to_index() * 8 + square.get_file().to_index()
+    };
+
+    match piece {
+        Piece::Pawn => PAWN_TABLE[index],
+        Piece::Knight => KNIGHT_TABLE[index],
+        Piece::Bishop => BISHOP_TABLE[index],
+        Piece::Rook => ROOK_TABLE[index],
+        Piece::Queen => QUEEN_TABLE[index],
+        Piece::King => KING_TABLE[index],
+    }
+}
+
+
 
 
 fn print_board(board:&Board){
